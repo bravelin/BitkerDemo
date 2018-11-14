@@ -1,0 +1,138 @@
+@import "reset.scss";
+#app {
+    color: #2c3e50;
+    min-width: 1400px;
+    background: #0c0d0f;
+    padding: 10px 20px 10px;
+}
+.row-wrap {
+    display: flex;
+    justify-content: space-between;
+}
+.panel {
+}
+.panel-header {
+    height: 60px;
+    line-height: 60px;
+    padding-left: 16px;
+    background-color: #1c2029;
+    border-radius: 4px 4px 0 0;
+    font-size: 14px;
+    color: #bac1da;
+    // box-shadow: 0 2px 4px #000;
+    > ul.tab {
+        display: flex;
+        height: 100%;
+        flex-direction: row;
+        align-items: center;
+        li {
+            height: 40px;
+            line-height: 40px;
+            padding: 0 10px;
+            border-radius: 4px;
+            margin-right: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            &.active {
+                color: #ffae36;
+            }
+            &:hover {
+                background: #0c0d0f;
+            }
+        }
+    }
+}
+.panel-content {
+    background: #161920;
+}
+
+.main-chart {
+    height: 600px;
+    flex: 3;
+    min-width: 1029px;
+    margin-right: 10px;
+    .panel-content {
+        height: 530px;
+    }
+}
+
+.real-time-deal {
+    height: 600px;
+    flex: 1;
+    min-width: 330px;
+    .panel-content {
+        height: 530px;
+    }
+}
+
+.real-time-transaction,
+.user-transaction-zone {
+    height: 436px;
+    .panel-content {
+        height: 376px;
+    }
+}
+
+.real-time-deal,
+.real-time-transaction {
+    flex: 1;
+}
+.user-transaction-zone {
+    flex: 3;
+    margin-right: 10px;
+    min-width: 1029px;
+}
+.data-list-row {
+    display: flex;
+    flex-direction: row;
+    height: 32px;
+    line-height: 32px;
+    margin: 0 16px;
+    color: #858ca3;
+    font-size: 12px;
+    border-bottom: 1px solid #1c2029;
+    padding-left: 5px;
+    padding-right: 5px;
+    > strong {
+        color: #bac1da;
+        margin-right: 4px;
+    }
+    > div {
+        flex: 1;
+        &.left {
+            text-align: left;
+        }
+        &.right {
+            text-align: right;
+        }
+        &.center {
+            text-align: center;
+        }
+        &.up {
+            color: #14c285;
+        }
+        &.down {
+            color: #dd3451;
+        }
+        &.bold {
+            font-weight: bold;
+        }
+        &.collect {
+            &:before {
+                content: "";
+                display: inline-block;
+                width: 14px;
+                height: 14px;
+                margin-right: 3px;
+                vertical-align: middle;
+                margin-top: -3px;
+                background: url("assets/star.png");
+            }
+        }
+    }
+}
+.data-list > .data-list-row {
+    &:hover {
+        background: #1c2029;
+    }
+}

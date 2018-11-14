@@ -30,7 +30,8 @@ module.exports = {
                 'arrays': 'only-multiline',
                 'objects': 'only-multiline'
             }
-        ]
+        ],
+        'space-before-function-paren': ['error', 'never']
     },
     globals: {
 

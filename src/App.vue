@@ -1,28 +1,29 @@
+<style lang="scss">
+    @import "./style/common/common.scss";
+</style>
 <template>
     <div id="app">
-        <img alt="Vue logo" src="./assets/logo.png">
-        <HelloWorld msg="Welcome to Your Vue.js App" />
+        <div class="row-wrap">
+            <MainChart></MainChart>
+            <RealtimeDeal></RealtimeDeal>
+        </div>
+        <div class="row-wrap">
+            <UserTransactionZone></UserTransactionZone>
+            <RealtimeTransaction></RealtimeTransaction>
+        </div>
     </div>
 </template>
 
 <script>
-    import HelloWorld from './components/HelloWorld.vue'
+    import MainChart from '@/view/MainChart'
+    import RealtimeTransaction from '@/view/RealtimeTransaction'
+    import UserTransactionZone from '@/view/UserTransactionZone'
+    import RealtimeDeal from '@/view/RealtimeDeal'
 
     export default {
         name: 'app',
         components: {
-            HelloWorld
+            MainChart, RealtimeTransaction, UserTransactionZone, RealtimeDeal
         }
     }
 </script>
-
-<style lang="scss">
-    #app {
-      font-family: "Avenir", Helvetica, Arial, sans-serif;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      text-align: center;
-      color: #2c3e50;
-      margin-top: 60px;
-    }
-</style>
