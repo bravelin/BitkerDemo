@@ -2,9 +2,9 @@
     <div class="real-time-deal panel">
         <div class="panel-header">
             <ul class="tab">
-                <li class="active">全部</li>
-                <li>买盘</li>
-                <li>卖盘</li>
+                <li :class="{ active: selectedTab==0 }" @click="switchTab(0)">全部</li>
+                <li :class="{ active: selectedTab==1 }" @click="switchTab(1)">买盘</li>
+                <li :class="{ active: selectedTab==2 }" @click="switchTab(2)">卖盘</li>
             </ul>
         </div>
         <div class="panel-content">
@@ -15,27 +15,21 @@
                 <div class="right">累计(BTC)</div>
             </div>
             <div class="data-list-wrap">
-                <ul class="data-list">
-                    <li class="data-list-row">
-                        <div class="center down">卖5</div>
-                        <div class="center">6655.2322</div>
-                        <div class="center">0.3789</div>
-                        <div class="right">0.6369</div>
-                    </li>
-                    <li class="data-list-row">
-                        <div class="center down">卖5</div>
-                        <div class="center">6655.2322</div>
-                        <div class="center">0.3789</div>
-                        <div class="right">0.6369</div>
+                <ul class="data-list" v-show="selectedTab!=1">
+                    <li class="data-list-row" v-for="item in sellDataList" :key="item.id">
+                        <div class="center down">卖{{ item.id }}</div>
+                        <div class="center">{{ item.price }}</div>
+                        <div class="center">{{ item.amount }}</div>
+                        <div class="right">{{ item.totalAmount }}</div>
                     </li>
                 </ul>
-                <div class="data-list-row"><strong>6450.233</strong>≈ 25444 CNY</div>
-                <ul class="data-list">
-                    <li class="data-list-row">
-                        <div class="center down">卖5</div>
-                        <div class="center">6655.2322</div>
-                        <div class="center">0.3789</div>
-                        <div class="right">0.6369</div>
+                <div class="data-list-row"><strong>{{ buyRatio }}</strong>≈ {{ sellRatio }} CNY</div>
+                <ul class="data-list" v-show="selectedTab!=2">
+                    <li class="data-list-row" v-for="item in buyDataList" :key="item.id">
+                        <div class="center up">买{{ item.id }}</div>
+                        <div class="center">{{ item.price }}</div>
+                        <div class="center">{{ item.amount }}</div>
+                        <div class="right">{{ item.totalAmount }}</div>
                     </li>
                 </ul>
             </div>
@@ -46,7 +40,46 @@
     export default {
         data() {
             return {
+                selectedTab: 0, // 0--全部 1--买盘  2--卖盘
+                buyDataList: [], // 买盘
+                sellDataList: [], // 卖盘
+                buyRatio: (Math.random() * 10000).toFixed(3),
+                sellRatio: (Math.random() * 100000).toFixed(0)
+            }
+        },
+        created() {
+            const that = this
+            // sellDataList
+            const sellDataList = []
+            for (let i = 5; i > 0; i--) {
+                sellDataList.push({
+                    id: i,
+                    price: (Math.random() * 1000).toFixed(4),
+                    amount: (Math.random()).toFixed(3)
+                })
+            }
+            sellDataList.forEach(item => {
+                item.totalAmount = ((item.amount - 0) + Math.random()).toFixed(3)
+            })
+            that.sellDataList = sellDataList
 
+            // buyDataList
+            const buyDataList = []
+            for (let i = 1; i <= 5; i++) {
+                buyDataList.push({
+                    id: i,
+                    price: (Math.random() * 1000).toFixed(4),
+                    amount: (Math.random()).toFixed(3)
+                })
+            }
+            buyDataList.forEach(item => {
+                item.totalAmount = ((item.amount - 0) + Math.random()).toFixed(3)
+            })
+            that.buyDataList = buyDataList
+        },
+        methods: {
+            switchTab(tab) {
+                this.selectedTab = tab
             }
         }
     }
@@ -62,6 +95,7 @@
           }
           &:nth-of-type(2) {
             flex: none;
+            width: 100px;
             margin-right: 20px;
           }
         }
