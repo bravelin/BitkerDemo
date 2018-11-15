@@ -5,7 +5,6 @@ import 'vuescroll/dist/vuescroll.css'
 import './registerServiceWorker'
 
 Vue.config.productionTip = false
-
 Vue.use(vuescroll)
 
 new Vue({
