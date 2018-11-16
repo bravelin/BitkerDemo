@@ -33,9 +33,16 @@
             }
         },
         created() {
-            const socket = io('http://localhost:7001/')
+            const socket = io('ws://localhost:7001/')
+            console.log('created', +new Date())
             socket.on('connect', () => {
-                console.log('socket connect ...............', socket.id)
+                console.log('socket connect ....', socket.id)
+                socket.on('deal-data', msg => {
+                    console.log((+new Date()) + ' 接收到消息deal-data', msg)
+                })
+                socket.on('transaction-data', msg => {
+                    console.log((+new Date()) + '接收到消息transaction-data', msg)
+                })
             })
         },
         methods: {

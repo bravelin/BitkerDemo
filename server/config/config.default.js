@@ -9,5 +9,16 @@ module.exports = appInfo => {
   // add your config here
   config.middleware = [];
 
+  config.io = {
+    init: {
+      wsEngine: 'ws',
+    }, // passed to engine.io
+    namespace: {
+      '/': {
+        connectionMiddleware: ['connection'],
+        packetMiddleware: []
+      }
+    }
+  };
   return config;
 };
