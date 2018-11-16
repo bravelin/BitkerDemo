@@ -41,10 +41,11 @@
                 console.log('socket connect ....', socket.id)
             })
             socket.on('deal-data', payload => {
-                that.dealData.sellDataList = payload.sellDataList
-                that.dealData.buyDataList = payload.buyDataList
-                that.dealData.buyRatio = payload.buyRatio
-                that.dealData.sellRatio = payload.sellRatio
+                const dealData = that.dealData
+                dealData.sellDataList = payload.sellDataList
+                dealData.buyDataList = payload.buyDataList
+                dealData.buyRatio = payload.buyRatio
+                dealData.sellRatio = payload.sellRatio
             })
             socket.on('transaction-data', payload => {
                 that.transactionData = payload
