@@ -5,11 +5,11 @@
     <div id="app">
         <div class="row-wrap">
             <MainChart></MainChart>
-            <RealtimeDeal></RealtimeDeal>
+            <RealtimeDeal :data="dealData"></RealtimeDeal>
         </div>
         <div class="row-wrap">
             <UserTransactionZone></UserTransactionZone>
-            <RealtimeTransaction></RealtimeTransaction>
+            <RealtimeTransaction :data="transactionData"></RealtimeTransaction>
         </div>
     </div>
 </template>
@@ -29,27 +29,32 @@
         data() {
             return {
                 dealData: { sellDataList: [], buyDataList: [], buyRatio: '', sellRatio: '' },
-                transactionData: []
+                transactionData: [],
+                socket: null
             }
         },
         created() {
             const socket = io('ws://localhost:7001/')
-            console.log('created', +new Date())
+            const that = this
+            that.socket = socket
             socket.on('connect', () => {
                 console.log('socket connect ....', socket.id)
-                socket.on('deal-data', msg => {
-                    console.log((+new Date()) + ' 接收到消息deal-data', msg)
-                })
-                socket.on('transaction-data', msg => {
-                    console.log((+new Date()) + '接收到消息transaction-data', msg)
-                })
+            })
+            socket.on('deal-data', payload => {
+                that.dealData.sellDataList = payload.sellDataList
+                that.dealData.buyDataList = payload.buyDataList
+                that.dealData.buyRatio = payload.buyRatio
+                that.dealData.sellRatio = payload.sellRatio
+            })
+            socket.on('transaction-data', payload => {
+                that.transactionData = payload
             })
         },
         methods: {
 
         },
         beforeDestroy() {
-
+            this.socket.close()
         }
     }
 </script>

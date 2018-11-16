@@ -62,7 +62,7 @@ module.exports = app => {
                     s.emit('deal-data', getRealTimeDealData());
                     s.emit('transaction-data', getRealTimeTransactionData());
                 })
-            }, 20000)
+            }, 10000)
         } else {
             app.sockets.push(socket);
         }

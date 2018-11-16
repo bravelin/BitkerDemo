@@ -16,16 +16,16 @@
             </div>
             <div class="data-list-wrap">
                 <ul class="data-list" v-show="selectedTab!=1">
-                    <li class="data-list-row" v-for="item in sellDataList" :key="item.id">
+                    <li class="data-list-row" v-for="item in data.sellDataList" :key="item.id">
                         <div class="center down">卖{{ item.id }}</div>
                         <div class="center">{{ item.price }}</div>
                         <div class="center">{{ item.amount }}</div>
                         <div class="right">{{ item.totalAmount }}</div>
                     </li>
                 </ul>
-                <div class="data-list-row"><strong>{{ buyRatio }}</strong>≈ {{ sellRatio }} CNY</div>
+                <div class="data-list-row"><strong>{{ data.buyRatio }}</strong>≈ {{ data.sellRatio }} CNY</div>
                 <ul class="data-list" v-show="selectedTab!=2">
-                    <li class="data-list-row" v-for="item in buyDataList" :key="item.id">
+                    <li class="data-list-row" v-for="item in data.buyDataList" :key="item.id">
                         <div class="center up">买{{ item.id }}</div>
                         <div class="center">{{ item.price }}</div>
                         <div class="center">{{ item.amount }}</div>
@@ -38,44 +38,58 @@
 </template>
 <script>
     export default {
+        props: {
+            data: {
+                type: Object,
+                required: true,
+                default() {
+                    return {
+                        buyDataList: [], // 买盘
+                        sellDataList: [], // 卖盘
+                        buyRatio: (Math.random() * 10000).toFixed(3),
+                        sellRatio: (Math.random() * 100000).toFixed(0)
+                    }
+                }
+            }
+        },
         data() {
             return {
-                selectedTab: 0, // 0--全部 1--买盘  2--卖盘
-                buyDataList: [], // 买盘
-                sellDataList: [], // 卖盘
-                buyRatio: (Math.random() * 10000).toFixed(3),
-                sellRatio: (Math.random() * 100000).toFixed(0)
+                selectedTab: 0 // 0--全部 1--买盘  2--卖盘
+                // buyDataList: [], // 买盘
+                // sellDataList: [], // 卖盘
+                // buyRatio: (Math.random() * 10000).toFixed(3),
+                // sellRatio: (Math.random() * 100000).toFixed(0)
             }
         },
         created() {
-            const that = this
-            // sellDataList
-            const sellDataList = []
-            for (let i = 5; i > 0; i--) {
-                sellDataList.push({
-                    id: i,
-                    price: (Math.random() * 1000).toFixed(4),
-                    amount: (Math.random()).toFixed(3)
-                })
-            }
-            sellDataList.forEach(item => {
-                item.totalAmount = ((item.amount - 0) + Math.random()).toFixed(3)
-            })
-            that.sellDataList = sellDataList
+            // const that = this
+            // // sellDataList
+            // const sellDataList = []
+            // for (let i = 5; i > 0; i--) {
+            //     sellDataList.push({
+            //         id: i,
+            //         price: (Math.random() * 1000).toFixed(4),
+            //         amount: (Math.random()).toFixed(3)
+            //     })
+            // }
+            // sellDataList.forEach(item => {
+            //     item.totalAmount = ((item.amount - 0) + Math.random()).toFixed(3)
+            // })
+            // that.sellDataList = sellDataList
 
-            // buyDataList
-            const buyDataList = []
-            for (let i = 1; i <= 5; i++) {
-                buyDataList.push({
-                    id: i,
-                    price: (Math.random() * 1000).toFixed(4),
-                    amount: (Math.random()).toFixed(3)
-                })
-            }
-            buyDataList.forEach(item => {
-                item.totalAmount = ((item.amount - 0) + Math.random()).toFixed(3)
-            })
-            that.buyDataList = buyDataList
+            // // buyDataList
+            // const buyDataList = []
+            // for (let i = 1; i <= 5; i++) {
+            //     buyDataList.push({
+            //         id: i,
+            //         price: (Math.random() * 1000).toFixed(4),
+            //         amount: (Math.random()).toFixed(3)
+            //     })
+            // }
+            // buyDataList.forEach(item => {
+            //     item.totalAmount = ((item.amount - 0) + Math.random()).toFixed(3)
+            // })
+            // that.buyDataList = buyDataList
         },
         methods: {
             switchTab(tab) {
