@@ -3,22 +3,22 @@
         <div class="panel-header">
             <span>BTC/USDT</span>
             <div>
-                <p>5690.4402 <span>≈ 38822.91CNY</span></p>
+                <p>{{ info.ratio1 }} <span>≈ {{ info.ratio2 }}CNY</span></p>
                 <div>
                     <div>24h涨跌</div>
-                    <div class="down">-0.69%</div>
+                    <div :class="{ down: info.upDown<0, up: info.upDown>0 }">{{ info.upDown }}%</div>
                 </div>
                 <div>
                     <div>24h最高价</div>
-                    <div>5793.4165</div>
+                    <div>{{ info.highest }}</div>
                 </div>
                 <div>
                     <div>24h最低价</div>
-                    <div>5411.5453</div>
+                    <div>{{ info.lowest }}</div>
                 </div>
                 <div>
                     <div>24h成交量</div>
-                    <div>26574 BTC</div>
+                    <div>{{ info.volume }}BTC</div>
                 </div>
             </div>
         </div>
@@ -36,24 +36,63 @@
     </div>
 </template>
 <script>
+    import { formatTime } from '@/lib/util'
     export default {
-        components: {
+        props: {
+            data: {
+                type: Array,
+                required: true,
+                default() {
+                    return []
+                }
+            },
+            info: {
+                type: Object,
+                required: true,
+                default() {
+                    return {
+                        ratio1: 0,
+                        ratio2: 0,
+                        upDown: 0,
+                        highest: 0,
+                        lowest: 0,
+                        volume: 0
+                    }
+                }
+            }
+        },
+        watch: {
+            data() { // 监听klineData的改变
+                const that = this
+                if (!that.hasLoadedData) {
+                    that.hasLoadedData = true
+                    if (that.hasMounted && !that.chartInstance) {
+                        that.initChart(that.data)
+                    }
+                } else if (that.chartInstance) {
+                    that.refreshChart() // 数据改变，刷新图表
+                }
+            }
         },
         data() {
             return {
-                chartInstance: null
+                chartInstance: null,
+                hasLoadedData: false,
+                hasMounted: false,
+                kline: {
+                    categoryData: [],
+                    values: [],
+                    volumes: []
+                }
             }
         },
         mounted() {
             const that = this
             that.$nextTick(() => {
-                fetch('./stock.json').then(res => res.json()).then(data => {
-                    // console.log('json data：', data)
-                    that.initChart(data)
-                    window.addEventListener('resize', () => {
-                        that.chartInstance.resize()
-                    })
-                })
+                that.hasMounted = true
+                if (that.hasLoadedData && !that.chartInstance) {
+                    that.initChart(that.data)
+                }
             })
         },
         methods: {
@@ -61,33 +100,50 @@
                 const that = this
                 const upColor = '#3D8560'
                 const downColor = '#97403A'
-                let data = that.splitData(rawData)
-                console.log('data：', data)
-                console.log('MA5：', that.calculateMA(5, data))
-                console.log('MA10：', that.calculateMA(10, data))
+                that.splitData(rawData)
+                const kline = that.kline
                 that.chartInstance = that.$echarts.init(that.$refs.chart)
 
                 that.chartInstance.setOption({
-                    animation: true,
+                    animation: false,
                     grid: [
                         {
                             left: '60px',
-                            right: '20px',
+                            right: '30px',
                             top: '20px',
-                            height: '70%'
+                            height: '68%'
                         },
                         {
                             left: '60px',
-                            right: '20px',
+                            right: '30px',
                             top: '75%',
-                            height: '20%'
+                            height: '18%'
                         }
                     ],
                     axisPointer: {
                         link: { xAxisIndex: 'all' },
                         label: {
-                            backgroundColor: '#777'
+                            backgroundColor: '#333'
                         }
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'cross'
+                        },
+                        backgroundColor: 'rgba(245, 245, 245, 0.8)',
+                        borderWidth: 1,
+                        borderColor: '#ccc',
+                        padding: 10,
+                        textStyle: {
+                            color: '#000'
+                        },
+                        position(pos, params, el, elRect, size) {
+                            var obj = { top: 10 }
+                            obj[['left', 'right'][+(pos[0] < size.viewSize[0] / 2)]] = 30
+                            return obj
+                        }
+                        // extraCssText: 'width: 170px'
                     },
                     toolbox: {
                         show: false
@@ -114,7 +170,7 @@
                     xAxis: [
                         {
                             type: 'category',
-                            data: data.categoryData,
+                            data: kline.categoryData,
                             scale: true,
                             boundaryGap: false,
                             splitLine: {
@@ -125,7 +181,7 @@
                                     opacity: 1
                                 }
                             },
-                            splitNumber: 20,
+                            splitNumber: 10,
                             min: 'dataMin',
                             max: 'dataMax',
                             axisPointer: {
@@ -133,21 +189,31 @@
                             },
                             axisLine: {
                                 onZero: false,
-                                lineStyle: {
-                                    color: '#191f2b'
-                                }
-                            }
+                                show: false
+                            },
+                            axisTick: { show: false },
+                            axisLabel: { show: false }
                         },
                         {
                             type: 'category',
                             gridIndex: 1,
-                            data: data.categoryData,
+                            data: kline.categoryData,
                             scale: true,
                             boundaryGap: false,
-                            axisLine: { onZero: false },
-                            axisTick: { show: false },
-                            splitLine: { show: false },
-                            axisLabel: { show: false },
+                            axisLine: {
+                                onZero: false,
+                                lineStyle: {
+                                    color: '#191f2b'
+                                }
+                            },
+                            splitLine: {
+                                show: false
+                            },
+                            axisLabel: {
+                                show: true,
+                                color: '#333',
+                                fontSize: 10
+                            },
                             splitNumber: 20,
                             min: 'dataMin',
                             max: 'dataMax'
@@ -183,28 +249,28 @@
                             splitLine: { show: false }
                         }
                     ],
-                    dataZoom: [
-                        {
-                            show: false,
-                            type: 'inside',
-                            xAxisIndex: [0, 1],
-                            start: 75,
-                            end: 100
-                        },
-                        {
-                            show: false,
-                            xAxisIndex: [0, 1],
-                            type: 'slider',
-                            top: '85%',
-                            start: 75,
-                            end: 100
-                        }
-                    ],
+                    // dataZoom: [
+                    //     {
+                    //         show: false,
+                    //         type: 'inside',
+                    //         xAxisIndex: [0, 1],
+                    //         start: 0,
+                    //         end: 100
+                    //     },
+                    //     {
+                    //         show: false,
+                    //         xAxisIndex: [0, 1],
+                    //         type: 'slider',
+                    //         top: '85%',
+                    //         start: 0,
+                    //         end: 100
+                    //     }
+                    // ],
                     series: [
                         {
-                            name: 'Dow-Jones index',
+                            name: 'index',
                             type: 'candlestick',
-                            data: data.values,
+                            data: kline.values,
                             itemStyle: {
                                 normal: {
                                     color: upColor,
@@ -227,36 +293,9 @@
                             }
                         },
                         {
-                            name: 'MA5',
+                            name: 'MA1',
                             type: 'line',
-                            data: that.calculateMA(5, data),
-                            smooth: true,
-                            lineStyle: {
-                                normal: { opacity: 0.5 }
-                            }
-                        },
-                        {
-                            name: 'MA10',
-                            type: 'line',
-                            data: that.calculateMA(10, data),
-                            smooth: true,
-                            lineStyle: {
-                                normal: { opacity: 0.5 }
-                            }
-                        },
-                        {
-                            name: 'MA20',
-                            type: 'line',
-                            data: that.calculateMA(20, data),
-                            smooth: true,
-                            lineStyle: {
-                                normal: { opacity: 0.5 }
-                            }
-                        },
-                        {
-                            name: 'MA30',
-                            type: 'line',
-                            data: that.calculateMA(30, data),
+                            data: that.calculateMA(1),
                             smooth: true,
                             lineStyle: {
                                 normal: { opacity: 0.5 }
@@ -267,34 +306,63 @@
                             type: 'bar',
                             xAxisIndex: 1,
                             yAxisIndex: 1,
-                            data: data.volumes
+                            data: kline.volumes
                         }
                     ]
                 }, true)
+
+                // 宽度自适应
+                window.addEventListener('resize', () => {
+                    that.chartInstance.resize()
+                })
+            },
+            // 用新数据刷新图表
+            refreshChart() {
+                const that = this
+                let newData = [...that.data[that.data.length - 1]]
+                if (newData.length < 6) {
+                    return
+                }
+                const kline = that.kline
+                // console.log('refresh new data：', JSON.stringify(newData))
+                let time = newData.splice(0, 1)[0]
+                let timeStr = formatTime(new Date(time), 'hh:mm')
+                kline.categoryData.push(timeStr)
+                kline.values.push(newData)
+                let newVolume = [kline.volumes.length, newData[4], newData[0] > newData[1] ? 1 : -1]
+                kline.volumes.push(newVolume)
+
+                const option = that.chartInstance.getOption()
+                option.xAxis[0].data.push(timeStr)
+                option.xAxis[1].data.push(timeStr)
+                option.series[0].data.push(newData)
+                option.series[3].data.push(newVolume)
+                that.chartInstance.setOption(option) // do refresh
             },
             splitData(rawData) {
-                let categoryData = []
-                let values = []
-                let volumes = []
+                const that = this
+                let time = ''
+                const kline = that.kline
                 for (let i = 0; i < rawData.length; i++) {
-                    categoryData.push(rawData[i].splice(0, 1)[0])
-                    values.push(rawData[i])
-                    volumes.push([i, rawData[i][4], rawData[i][0] > rawData[i][1] ? 1 : -1])
+                    time = rawData[i].splice(0, 1)[0]
+                    kline.categoryData.push(formatTime(new Date(time), 'hh:mm'))
+                    kline.values.push(rawData[i])
+                    kline.volumes.push([i, rawData[i][4], rawData[i][0] > rawData[i][1] ? 1 : -1])
                 }
-                return { categoryData, values, volumes }
             },
-            calculateMA(dayCount, data) {
+            calculateMA(count) {
                 let result = []
-                for (let i = 0, len = data.values.length; i < len; i++) {
-                    if (i < dayCount) {
+                const that = this
+                for (let i = 0, len = that.kline.values.length; i < len; i++) {
+                    if (i < count) {
                         result.push('-')
                         continue
                     }
                     let sum = 0
-                    for (let j = 0; j < dayCount; j++) {
-                        sum += data.values[i - j][1]
+                    for (let j = 0; j < count; j++) {
+                        sum += that.kline.values[i - j][1]
                     }
-                    result.push(+(sum / dayCount).toFixed(3))
+                    result.push(+(sum / count).toFixed(3))
                 }
                 return result
             }

@@ -4,7 +4,7 @@
 <template>
     <div id="app">
         <div class="row-wrap">
-            <MainChart></MainChart>
+            <MainChart :data="klineData" :info="stockData"></MainChart>
             <RealtimeDeal :data="dealData"></RealtimeDeal>
         </div>
         <div class="row-wrap">
@@ -30,7 +30,9 @@
             return {
                 dealData: { sellDataList: [], buyDataList: [], buyRatio: '', sellRatio: '' },
                 transactionData: [],
-                socket: null
+                socket: null,
+                klineData: [],
+                stockData: {}
             }
         },
         created() {
@@ -49,6 +51,19 @@
             })
             socket.on('transaction-data', payload => {
                 that.transactionData = payload
+            })
+            socket.on('init-kline-data', payload => {
+                // console.log('init-kline-data', payload)
+                that.klineData = payload
+            })
+            socket.on('stock-data', payload => {
+                // console.log('stock-data', payload)
+                that.stockData = payload
+            })
+            socket.on('update-kline-data', payload => {
+                console.log('update-kline-data', JSON.stringify(payload))
+                that.klineData.shift()
+                that.klineData.push(payload)
             })
         },
         methods: {
