@@ -43,8 +43,8 @@
         data() {
             return {
                 selectedTab: 0, // 0--限价交易  1--市价交易
-                percent1: 1, // 1--25% 2--50%
-                percent2: 1, // 1--25% 2--50%
+                percent1: 0, // 1--25% 2--50%
+                percent2: 0, // 1--25% 2--50%
                 sellAmount: '',
                 buyAmount: ''
             }

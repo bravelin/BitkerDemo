@@ -25,10 +25,8 @@
         <div class="panel-content">
             <div class="time-list">
                 <ul>
-                    <li class="active">1分钟</li>
-                    <li>5分钟</li>
-                    <li>15分钟</li>
-                    <li>30分钟</li>
+                    <li :class="{ active: klineType==1 }" @click="changeType(1)">1分钟</li>
+                    <li :class="{ active: klineType==5 }" @click="changeType(5)">5分钟</li>
                 </ul>
             </div>
             <div class="chart-container" ref="chart"></div>
@@ -39,7 +37,12 @@
     import { formatTime } from '@/lib/util'
     export default {
         props: {
-            data: {
+            klineType: {
+                type: Number,
+                required: true,
+                default: 1
+            },
+            lineData: {
                 type: Array,
                 required: true,
                 default() {
@@ -62,15 +65,19 @@
             }
         },
         watch: {
-            data() { // 监听klineData的改变
+            lineData() { // 监听klineData的改变
                 const that = this
                 if (!that.hasLoadedData) {
                     that.hasLoadedData = true
                     if (that.hasMounted && !that.chartInstance) {
-                        that.initChart(that.data)
+                        that.initChart(that.lineData)
                     }
                 } else if (that.chartInstance) {
-                    that.refreshChart() // 数据改变，刷新图表
+                    if (that.klineType === that.kline.type) {
+                        that.refreshChart() // 单条数据改变，刷新图表
+                    } else {
+                        that.refreshAll() // 全部数据改变
+                    }
                 }
             }
         },
@@ -80,9 +87,11 @@
                 hasLoadedData: false,
                 hasMounted: false,
                 kline: {
+                    type: 1,
                     categoryData: [],
                     values: [],
-                    volumes: []
+                    volume1: [],
+                    volume2: []
                 }
             }
         },
@@ -91,7 +100,7 @@
             that.$nextTick(() => {
                 that.hasMounted = true
                 if (that.hasLoadedData && !that.chartInstance) {
-                    that.initChart(that.data)
+                    that.initChart(that.lineData)
                 }
             })
         },
@@ -108,16 +117,16 @@
                     animation: false,
                     grid: [
                         {
-                            left: '60px',
-                            right: '30px',
+                            left: '30px',
+                            right: '60px',
                             top: '20px',
-                            height: '68%'
+                            height: '71%'
                         },
                         {
-                            left: '60px',
-                            right: '30px',
+                            left: '30px',
+                            right: '60px',
                             top: '75%',
-                            height: '18%'
+                            height: '17.0%'
                         }
                     ],
                     axisPointer: {
@@ -131,19 +140,25 @@
                         axisPointer: {
                             type: 'cross'
                         },
-                        backgroundColor: 'rgba(245, 245, 245, 0.8)',
-                        borderWidth: 1,
-                        borderColor: '#ccc',
-                        padding: 10,
+                        backgroundColor: 'rgba(245, 245, 245, 0)',
+                        borderWidth: 0,
+                        borderColor: 'rgba(0,0,0,0)',
+                        padding: 2,
                         textStyle: {
-                            color: '#000'
+                            color: '#aaa'
                         },
-                        position(pos, params, el, elRect, size) {
-                            var obj = { top: 10 }
-                            obj[['left', 'right'][+(pos[0] < size.viewSize[0] / 2)]] = 30
-                            return obj
+                        position: [10, 10],
+                        // alwaysShowContent: true,
+                        formatter(p) {
+                            if (p[0].componentSubType === 'candlestick') {
+                                const param = p[0].data
+                                const cls = param[2] > param[1] ? 'up' : ''
+                                const volume = p[2].data || p[3].data
+                                return `<div class="chart-tip ${cls}">开：<span>${param[1]}</span>收：<span>${param[2]}</span>低：<span>${param[3]}</span>高：<span>${param[4]}</span>成交：<span>${volume}</span></div>`
+                            } else {
+                                return ''
+                            }
                         }
-                        // extraCssText: 'width: 170px'
                     },
                     toolbox: {
                         show: false
@@ -185,7 +200,10 @@
                             min: 'dataMin',
                             max: 'dataMax',
                             axisPointer: {
-                                z: 100
+                                z: 100,
+                                label: {
+                                    show: false
+                                }
                             },
                             axisLine: {
                                 onZero: false,
@@ -221,9 +239,13 @@
                     ],
                     yAxis: [
                         {
+                            position: 'right',
                             scale: true,
                             splitArea: {
                                 show: false
+                            },
+                            axisLabel: {
+                                showMinLabel: false
                             },
                             axisLine: {
                                 lineStyle: {
@@ -241,11 +263,17 @@
                         },
                         {
                             scale: true,
+                            position: 'right',
                             gridIndex: 1,
                             splitNumber: 2,
-                            axisLabel: { show: false },
-                            axisLine: { show: false },
-                            axisTick: { show: false },
+                            axisLabel: { show: true },
+                            axisLine: {
+                                show: true,
+                                lineStyle: {
+                                    color: '#191f2b'
+                                }
+                            },
+                            axisTick: { show: true },
                             splitLine: { show: false }
                         }
                     ],
@@ -278,18 +306,6 @@
                                     borderColor: null,
                                     borderColor0: null
                                 }
-                            },
-                            tooltip: {
-                                formatter(param) {
-                                    param = param[0]
-                                    return [
-                                        'Date: ' + param.name + '<hr size=1 style="margin: 3px 0">',
-                                        'Open: ' + param.data[0] + '<br/>',
-                                        'Close: ' + param.data[1] + '<br/>',
-                                        'Lowest: ' + param.data[2] + '<br/>',
-                                        'Highest: ' + param.data[3] + '<br/>'
-                                    ].join('')
-                                }
                             }
                         },
                         {
@@ -302,42 +318,92 @@
                             }
                         },
                         {
-                            name: 'Volume',
+                            name: 'Volume1',
                             type: 'bar',
                             xAxisIndex: 1,
                             yAxisIndex: 1,
-                            data: kline.volumes
+                            data: kline.volume1,
+                            itemStyle: {
+                                color: '#61080A',
+                                opacity: 0.9
+                            },
+                            barGap: '-100%'
+                        },
+                        {
+                            name: 'Volume2',
+                            type: 'bar',
+                            xAxisIndex: 1,
+                            yAxisIndex: 1,
+                            data: kline.volume2,
+                            itemStyle: {
+                                color: '#08350C',
+                                opacity: 0.9
+                            }
                         }
                     ]
                 }, true)
 
+                that.chartInstance.dispatchAction({
+                    type: 'showTip',
+                    seriesIndex: 0,
+                    dataIndex: that.kline.values.length - 1
+                })
                 // 宽度自适应
                 window.addEventListener('resize', () => {
                     that.chartInstance.resize()
                 })
+                kline.type = that.klineType
             },
             // 用新数据刷新图表
             refreshChart() {
                 const that = this
-                let newData = [...that.data[that.data.length - 1]]
+                let newData = [...that.lineData[that.lineData.length - 1]]
                 if (newData.length < 6) {
                     return
                 }
                 const kline = that.kline
-                // console.log('refresh new data：', JSON.stringify(newData))
                 let time = newData.splice(0, 1)[0]
                 let timeStr = formatTime(new Date(time), 'hh:mm')
                 kline.categoryData.push(timeStr)
                 kline.values.push(newData)
-                let newVolume = [kline.volumes.length, newData[4], newData[0] > newData[1] ? 1 : -1]
-                kline.volumes.push(newVolume)
-
+                let volume1Value = 0
+                let volume2Value = 0
+                if (newData[0] > newData[1]) {
+                    kline.volume1.push(newData[4])
+                    kline.volume2.push(0)
+                    volume1Value = newData[4]
+                } else {
+                    kline.volume2.push(newData[4])
+                    kline.volume1.push(0)
+                    volume2Value = newData[4]
+                }
                 const option = that.chartInstance.getOption()
                 option.xAxis[0].data.push(timeStr)
                 option.xAxis[1].data.push(timeStr)
                 option.series[0].data.push(newData)
-                option.series[3].data.push(newVolume)
+                option.series[1].data = that.calculateMA(1)
+                option.series[2].data.push(volume1Value)
+                option.series[3].data.push(volume2Value)
                 that.chartInstance.setOption(option) // do refresh
+            },
+            refreshAll() {
+                const that = this
+                const kline = that.kline
+                kline.categoryData = []
+                kline.values = []
+                kline.volume1 = []
+                kline.volume2 = []
+                that.splitData(that.lineData)
+                const option = that.chartInstance.getOption()
+
+                option.xAxis[0].data = kline.categoryData
+                option.xAxis[1].data = kline.categoryData
+                option.series[0].data = kline.values
+                option.series[1].data = that.calculateMA(1)
+                option.series[2].data = kline.volume1
+                option.series[3].data = kline.volume2
+                that.chartInstance.setOption(option) // do refresh
+                that.kline.type = that.klineType
             },
             splitData(rawData) {
                 const that = this
@@ -347,7 +413,19 @@
                     time = rawData[i].splice(0, 1)[0]
                     kline.categoryData.push(formatTime(new Date(time), 'hh:mm'))
                     kline.values.push(rawData[i])
-                    kline.volumes.push([i, rawData[i][4], rawData[i][0] > rawData[i][1] ? 1 : -1])
+                    if (rawData[i][0] > rawData[i][1]) {
+                        kline.volume1.push(rawData[i][4])
+                        kline.volume2.push(0)
+                    } else {
+                        kline.volume2.push(rawData[i][4])
+                        kline.volume1.push(0)
+                    }
+                }
+            },
+            changeType(type) {
+                const that = this
+                if (that.klineType !== type) {
+                    that.$emit('change', type)
                 }
             },
             calculateMA(count) {
@@ -447,5 +525,15 @@
       background: #0c0d0f;
       height: 470px;
       margin: 0 15px 15px;
+    }
+    .chart-tip {
+      font-size: 12px;
+      > span {
+        margin-right: 10px;
+        color: #dd3451;
+      }
+      &.up > span {
+        color: #14c285;
+      }
     }
 </style>

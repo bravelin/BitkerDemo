@@ -69,6 +69,7 @@ function getRealTimeStockData() {
 
 const klineData = [] // 每分钟产生一条
 let klineBaseData = 0
+let klineType = 1 // 1分钟 5分钟
 // 1542333720000  5698.9574 5698.9125 5698.9125 5698.9574  0.1188
 
 function getOneKlineData(time, base) {
@@ -91,13 +92,14 @@ function getOneKlineData(time, base) {
 
 // 初始化整个klineData数组
 function initKlineData() {
-    const len = 120;
+    const len = 130;
     const currTime = (+new Date(formatTime(new Date(), 'yyyy/MM/dd hh:mm') + ':00'));
-    let time = 0
+    let time = 0;
+    klineData.splice(0, klineData.length);
     for (let i = 0; i <= len; i++) {
-        time = currTime - (len - i) * 60 * 1000;
+        time = currTime - (len - i) * klineType * 60 * 1000;
         if (i == 0) {
-            klineBaseData = (Math.random() * 10000).toFixed(4) - 0;
+            klineBaseData = (Math.random() * 20000).toFixed(4) - 0;
         } else {
             klineBaseData = (Math.random() > (i > len / 2 ? 0.3 : 0.4) ? klineBaseData * 1.1 : klineBaseData * 0.85);
         }
@@ -130,13 +132,12 @@ module.exports = app => {
                     s.emit('deal-data', getRealTimeDealData());
                     s.emit('transaction-data', getRealTimeTransactionData());
                     s.emit('stock-data', getRealTimeStockData());
-                    let currTime = (+new Date());
-                    if (parseInt(klineData[klineData.length - 1][0] / 60000) != parseInt(currTime / 60000)) {
+                    if (formatTime(new Date(), 'mm') - formatTime(new Date(klineData[klineData.length - 1][0]), 'mm') == klineType) {
                         updateKlineData();
                         socket.emit('update-kline-data', klineData[klineData.length - 1])
                     }
                 })
-            }, 10000)
+            }, 5000)
         } else {
             app.sockets.push(socket);
         }
@@ -146,10 +147,16 @@ module.exports = app => {
         if (klineData.length == 0) {
             initKlineData()
         }
-        socket.emit('init-kline-data', klineData)
+        socket.emit('init-kline-data', klineData);
+        socket.on('change-kline-type', (payload) => {
+            // console.log('change-kline-type server', payload)
+            klineType = payload
+            initKlineData() // 重新发送整个图表数据
+            socket.emit('init-kline-data', klineData);
+        })
         await next();
         // execute when disconnect.
-        console.log('disconnection!');
+        console.log('disconnection.............................');
         for (let i = 0; i < app.sockets.length; i++) {
             if (app.sockets[i].id == socket.id) {
                 app.sockets.splice(i, 1);
